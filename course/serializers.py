@@ -1,17 +1,24 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
-from course.models import Course, Lesson, Payment
+from course.models import Course, Lesson, Payment, Subscription
+from course.validators import UrlValidator
 
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = '__all__'
+        validators = [UrlValidator(field='url')]
 
 
 class CourseSerializer(serializers.ModelSerializer):
     lesson_count = serializers.IntegerField(source='lesson_set.all.count', read_only=True)
     lessons = LessonSerializer(source='lesson_set', many=True, read_only=True)
+    subscribed = serializers.SerializerMethodField()
+
+    def get_subscribed(self, obj):
+        return Subscription.objects.filter(user=self.context['request'].user, course=obj).exists()
 
     class Meta:
         model = Course
@@ -24,3 +31,12 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = '__all__'
 
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subscription
+        fields = '__all__'
+        validators = [UniqueTogetherValidator(queryset=Subscription.objects.all(),
+                                              fields=['user', 'course'],
+                                              message='Вы уже подписаны на этот курс')]

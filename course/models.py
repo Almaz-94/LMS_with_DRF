@@ -8,7 +8,7 @@ class Course(models.Model):
     name = models.CharField(max_length=50, verbose_name='название')
     preview = models.ImageField(upload_to='course', verbose_name='превью', **NULLABLE)
     description = models.TextField(verbose_name='описание', **NULLABLE)
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор',**NULLABLE)
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор', **NULLABLE)
 
     def __str__(self):
         return f'{self.name}'
@@ -24,7 +24,7 @@ class Lesson(models.Model):
     preview = models.ImageField(upload_to='course', verbose_name='превью', **NULLABLE)
     url = models.URLField(verbose_name='ссылка на видео', **NULLABLE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='входи в курс', **NULLABLE)
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор',**NULLABLE)
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор', **NULLABLE)
 
     def __str__(self):
         return f'{self.name}'
@@ -57,3 +57,21 @@ class Payment(models.Model):
         verbose_name = 'платеж'
         verbose_name_plural = 'платежи'
         ordering = ('-date',)
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE,
+                             verbose_name='подписчик',
+                             )
+    course = models.ForeignKey(Course,
+                               on_delete=models.CASCADE,
+                               verbose_name='курс',
+                               )
+
+    def __str__(self):
+        return f'{self.user} подписан на {self.course}'
+
+    class Meta:
+        verbose_name = 'подписка'
+        verbose_name_plural = 'подписки'

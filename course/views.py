@@ -1,16 +1,19 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from course.models import Course, Lesson, Payment
+from course.models import Course, Lesson, Payment, Subscription
+from course.paginators import LessonPaginator, CoursePaginator
 from course.permissions import IsOwner, IsModerator
-from course.serializers import CourseSerializer, LessonSerializer, PaymentSerializer
+from course.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
+    pagination_class = CoursePaginator
 
     def perform_create(self, serializer):
         new_course = serializer.save()
@@ -47,8 +50,8 @@ class LessonCreateAPIView(generics.CreateAPIView):
 
 class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
-    # queryset = Lesson.objects.all()
     permission_classes = [IsOwner | IsModerator]
+    pagination_class = LessonPaginator
 
     def get_queryset(self):
         queryset = Lesson.objects
@@ -92,3 +95,31 @@ class PaymentListAPIView(generics.ListAPIView):
 class PaymentCreateAPIView(generics.CreateAPIView):
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
+
+
+class SubscriptionCreateAPIView(generics.CreateAPIView):
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        course_pk = self.kwargs.get('course_pk')
+
+        serializer = self.get_serializer(data={'user': request.user.pk, 'course': course_pk})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({'Вы подписались на курс.'}, status=status.HTTP_201_CREATED)
+
+
+class SubscriptionDestroyAPIView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Subscription.objects.all()
+
+    def get_object(self):
+        course_pk = self.kwargs.get('course_pk')
+        course = Course.objects.get(pk=course_pk)
+        return Subscription.objects.get(user=self.request.user, course=course)
+
+    def destroy(self, request, *args, **kwargs):
+        obj = self.get_object()
+        self.perform_destroy(obj)
+        return Response('Вы отписались от курса.', status=status.HTTP_200_OK)
