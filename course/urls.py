@@ -27,3 +27,4 @@ urlpatterns = [
     path('unsubscribe/<int:course_pk>/', SubscriptionDestroyAPIView.as_view(), name='unsubscribe'),
 
 ] + router.urls
+some =urlpatterns
