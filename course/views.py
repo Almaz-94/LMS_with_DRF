@@ -1,3 +1,6 @@
+import os
+
+import stripe
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics, status
 from rest_framework.filters import OrderingFilter
@@ -8,6 +11,7 @@ from course.models import Course, Lesson, Payment, Subscription
 from course.paginators import LessonPaginator, CoursePaginator
 from course.permissions import IsOwner, IsModerator
 from course.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
+from course.services import create_stripe_session
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -23,7 +27,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Course.objects
         if not self.request.user.has_perms(perm_list=['course.change_course', 'course.change_lesson']):
-            return queryset.filter(creator=self.request.user)
+            return queryset.filter(creator=self.request.user.pk)
         return queryset.all()
 
     def get_permissions(self):
@@ -56,7 +60,7 @@ class LessonListAPIView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Lesson.objects
         if not self.request.user.has_perms(perm_list=['course.change_course', 'course.change_lesson']):
-            return queryset.filter(creator=self.request.user)
+            return queryset.filter(creator=self.request.user.pk)
         return queryset.all()
 
 
@@ -82,6 +86,13 @@ class PaymentRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Payment.objects.all()
     permission_classes = [IsAuthenticated]
 
+    def get_payment(self, request, payment_id):
+        stripe.api_key = os.getenv("STRIPE_API_KEY")
+        payment_retrieve = stripe.PaymentIntent.retrieve(payment_id)
+        print(payment_retrieve.status)
+        return Response({'status': payment_retrieve.status,
+                         'body': payment_retrieve})
+
 
 class PaymentListAPIView(generics.ListAPIView):
     serializer_class = PaymentSerializer
@@ -94,7 +105,17 @@ class PaymentListAPIView(generics.ListAPIView):
 
 class PaymentCreateAPIView(generics.CreateAPIView):
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        payment = serializer.save()
+        payment.client = self.request.user
+        payment.session = create_stripe_session(payment).id
+        payment.save()
+
+
+class PaymentDestroyAPIView(generics.DestroyAPIView):
+    queryset = Payment.objects.all()
 
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):

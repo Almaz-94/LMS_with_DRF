@@ -49,6 +49,7 @@ class Payment(models.Model):
                                **NULLABLE)
     sum = models.PositiveSmallIntegerField(verbose_name='сумма оплаты')
     type = models.CharField(max_length=30, verbose_name='тип платежа', choices=[('Cash', 'Cash'), ('Card', 'Card')])
+    session = models.CharField(max_length=150, verbose_name='Сессия для оплаты', **NULLABLE)
 
     def __str__(self):
         return f'{self.client} on {self.date}'

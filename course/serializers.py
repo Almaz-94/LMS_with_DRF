@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from course.models import Course, Lesson, Payment, Subscription
+from course.services import get_session
 from course.validators import UrlValidator
 
 
@@ -26,6 +27,12 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    payment_url = serializers.SerializerMethodField(read_only=True)
+    def get_payment_url(self, obj: Payment):
+        if obj.session:
+            session = get_session(obj.session)
+            return session.url
+        return None
 
     class Meta:
         model = Payment
