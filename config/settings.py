@@ -197,6 +197,6 @@ CELERY_BEAT_SCHEDULE = {
     },
     'deactivate-user': {
         'task': 'course.tasks.deactivate_user',
-        'schedule': timedelta(days=1),
+        'schedule': timedelta(seconds=1),
     },
 }

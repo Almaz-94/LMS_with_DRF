@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from celery import shared_task
 from django.conf import settings
@@ -24,6 +24,6 @@ def send_update_notification():
 @shared_task
 def deactivate_user():
     for user in User.objects.all():
-        if user.last_login and datetime.now() - user.last_login > timedelta(days=30):
+        if user.last_login and date.today() - user.last_login.date() > timedelta(days=30):
             user.is_active = False
             user.save()
