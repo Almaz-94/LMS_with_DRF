@@ -11,7 +11,7 @@ from users.models import User
 @shared_task
 def send_update_notification():
     for subscription in Subscription.objects.all():
-        if datetime.now() - subscription.last_updated < timedelta(hours=24):
+        if datetime.now() - subscription.course.last_updated < timedelta(hours=24):
 
             send_mail(
                 subject='Course update',
