@@ -11,13 +11,14 @@ from users.models import User
 @shared_task
 def send_update_notification():
     for subscription in Subscription.objects.all():
-        if datetime.now() - subscription.course.last_updated < timedelta(hours=24):
+        if subscription.course.last_updated:
+            if date.today() - subscription.course.last_updated.date() < timedelta(days=2):
 
-            send_mail(
-                subject='Course update',
-                message='Course in your subscription just got a new update',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[subscription.user.email]
-            )
+                send_mail(
+                    subject='Course update',
+                    message='Course in your subscription just got a new update',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[subscription.user.email]
+                )
 
 
