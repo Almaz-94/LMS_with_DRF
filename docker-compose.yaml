@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_NAME: lms_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1233
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    volumes:
+      - pg_data:/var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+
+
+  app:
+    build: .
+    command: sh -c "python manage.py migrate
+             && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+
+volumes:
+  pg_data:
+
+#    healthcheck:
+#      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+
+#        #condition: service_healthy
+#
+#  celery:
+#    build: .
+#    tty: true
+#    command: celery -A config worker -l INFO -P eventlet -S django
+#    depends_on:
+#      - redis
+#      - app
+#
+#  celery_beat:
+#    build: .
+#    restart: always
+#    tty: true
+#    command: celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+#
+#    depends_on:
+#      - redis
+#      - app
+#
