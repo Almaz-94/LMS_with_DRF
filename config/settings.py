@@ -177,10 +177,10 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 # URL-адрес брокера сообщений
-CELERY_BROKER_URL = 'redis://localhost:6379' # Например, Redis, который по умолчанию работает на порту 6379
+CELERY_BROKER_URL = 'redis://redis:6379/0'  # Например, Redis, который по умолчанию работает на порту 6379
 
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'
 
 # Часовой пояс для работы Celery
 CELERY_TIMEZONE = "Australia/Tasmania"
@@ -194,11 +194,11 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BEAT_SCHEDULE = {
     'send-update-notification': {
         'task': 'course.tasks.send_update_notification',  # Путь к задаче
-        'schedule': timedelta(seconds=1),  # Расписание выполнения задачи (например, каждые 10 минут)
+        'schedule': timedelta(seconds=30),  # Расписание выполнения задачи (например, каждые 10 минут)
 
     },
     'deactivate-user': {
         'task': 'users.tasks.deactivate_user',
-        'schedule': timedelta(seconds=1),
+        'schedule': timedelta(seconds=30),
     },
 }

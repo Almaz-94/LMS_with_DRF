@@ -4,9 +4,9 @@
 - Создать образ командой ```docker build -t my-docker-image .```
 - Запустить контейнер командой ```docker run my-python-app```
 
-[//]: # (- Собрать командой ```docker compose build``` )
-
-[//]: # (- Запустить командой ```docker compose up```)
+### Docker 27.2
+- Собрать командой ```docker-compose build```
+- Запустить командой ```docker-compose up```
 
 
 
